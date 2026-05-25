@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeerLog - Log a Sit</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --success: #27ae60;
+            --accent: #e67e22;
+            --dark: #34495e;
+            --light: #f8f9fa;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #eef2f5;
+            color: var(--dark);
+        }
+
+        .navbar {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+        }
+
+        h2 {
+            font-size: 1.1rem;
+            margin-top: 0;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            color: var(--primary);
+            border-bottom: 2px solid #eef2f5;
+            padding-bottom: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"], input[type="number"], select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        /* Stealth Counter UI Buttons */
+        .counter-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .counter-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 6px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .counter-btn:active {
+            background-color: var(--dark);
+        }
+
+        .counter-value {
+            font-size: 1.3rem;
+            font-weight: bold;
+            width: 40px;
+            text-align: center;
+        }
+
+        /* GPS Button styling */
+        .btn-gps {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        #map {
+            height: 200px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            margin-top: 10px;
+        }
+
+        .btn-submit {
+            background-color: var(--success);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(39, 174, 96, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <span>Log New Sit</span>
+        <a href="{% url 'dashboard' %}">✕ Cancel</a>
+    </div>
+
+    <div class="container">
+        <form method="POST" id="huntForm">
+            {% csrf_token %}
+
+            <div class="card">
+                <h2>1. Location Geometry</h2>
+                <button type="button" class="btn-gps" onclick="getLocation()">📡 Use Phone GPS Location</button>
+                
+                <div class="form-group">
+                    <label>Stand/Zone Name</label>
+                    <input type="text" name="location_zone" placeholder="e.g. Ridge Stand, Food Plot Creek">
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Latitude</label>
+                        <input type="text" name="latitude" id="id_lat" required placeholder="0.000000">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Longitude</label>
+                        <input type="text" name="longitude" id="id_lng" required placeholder="0.000000">
+                    </div>
+                </div>
+
+                <label>Or Adjust Point on Map:</label>
+                <div id="map"></div>
+            </div>
+
+            <div class="card">
+                <h2>2. Deer Activity Sightings</h2>
+                
+                <div class="counter-row">
+                    <label style="margin: 0;">Bucks Seen</label>
+                    <div>
+                        <button type="button" class="counter-btn" onclick="changeCount('bucks', -1)">-</button>
+                        <input type="number" name="bucks_seen" id="bucks" value="0" style="display:none;">
+                        <span class="counter-value" id="bucks_val">0</span>
+                        <button type="button" class="counter-btn" onclick="changeCount('bucks', 1)">+</button>
+                    </div>
+                </div>
+
+                <div class="counter-row">
+                    <label style="margin: 0;">Does Seen</label>
+                    <div>
+                        <button type="button" class="counter-btn" onclick="changeCount('does', -1)">-</button>
+                        <input type="number" name="does_seen" id="does" value="0" style="display:none;">
+                        <span class="counter-value" id="does_val">0</span>
+                        <button type="button" class="counter-btn" onclick="changeCount('does', 1)">+</button>
+                    </div>
+                </div>
+
+                <div class="counter-row">
+                    <label style="margin: 0;">Unidentified/Other</label>
+                    <div>
+                        <button type="button" class="counter-btn" onclick="changeCount('unknown', -1)">-</button>
+                        <input type="number" name="total_deer_seen" id="unknown" value="0" style="display:none;">
+                        <span class="counter-value" id="unknown_val">
