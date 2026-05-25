@@ -1,10 +1,12 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.utils import timezone
 from .models import HuntLog
 import folium
 
+@login_required
 def map_dashboard(request):
-    """The original administrative overview map view."""
+    """1. The administrative topographic map view."""
     hunts = HuntLog.objects.filter(user=request.user)
     
     # Default fallback map center if no hunt logs exist yet
@@ -51,18 +53,39 @@ def map_dashboard(request):
     return render(request, 'hunt_logs/map_dashboard.html', {'map_html': map_html})
 
 
-# --- NEW FRONTEND VIEWS ---
-
 @login_required
 def dashboard(request):
-    """Displays a mobile-optimized index of past hunts and summary cards."""
+    """2. The mobile-optimized landing page history index."""
     hunts = HuntLog.objects.filter(user=request.user).order_by('-start_time')
     return render(request, 'hunt_logs/dashboard.html', {'hunts': hunts})
 
+
 @login_required
 def create_hunt(request):
-    """Processes or displays the mobile-friendly field-logging form."""
+    """3. Processes and saves the mobile field-logging form data."""
     if request.method == 'POST':
-        pass
+        location_zone = request.POST.get('location_zone')
+        latitude = request.POST.get('latitude')
+        longitude = request.POST.get('longitude')
+        bucks_seen = request.POST.get('bucks_seen', 0)
+        does_seen = request.POST.get('does_seen', 0)
+        total_deer_seen = request.POST.get('total_deer_seen', 0)
+        visibility_level = request.POST.get('visibility_level')
+        notes = request.POST.get('notes')
+
+        new_log = HuntLog(
+            user=request.user,
+            start_time=timezone.now(),
+            location_zone=location_zone,
+            latitude=latitude,
+            longitude=longitude,
+            bucks_seen=int(bucks_seen),
+            does_seen=int(does_seen),
+            total_deer_seen=int(total_deer_seen) + int(bucks_seen) + int(does_seen),
+            visibility_level=visibility_level,
+            notes=notes
+        )
+        new_log.save()
+        return redirect('dashboard')
         
     return render(request, 'hunt_logs/create_hunt.html')
