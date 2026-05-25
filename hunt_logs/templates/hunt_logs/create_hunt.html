@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DeerLog - Log a Sit</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="//unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="//unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         :root {
             --primary: #2c3e50;
@@ -117,7 +117,7 @@
             text-align: center;
         }
 
-        /* GPS Button styling */
+        /* GPS Button styling with fixed container map rules */
         .btn-gps {
             background-color: var(--accent);
             color: white;
@@ -132,7 +132,9 @@
         }
 
         #map {
-            height: 200px;
+            height: 250px;
+            width: 100%;
+            background: #e5e3df;
             border-radius: 6px;
             border: 1px solid #ccc;
             margin-top: 10px;
@@ -215,4 +217,92 @@
                     <div>
                         <button type="button" class="counter-btn" onclick="changeCount('unknown', -1)">-</button>
                         <input type="number" name="total_deer_seen" id="unknown" value="0" style="display:none;">
-                        <span class="counter-value" id="unknown_val">
+                        <span class="counter-value" id="unknown_val">0</span>
+                        <button type="button" class="counter-btn" onclick="changeCount('unknown', 1)">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>3. Conditions & Notes</h2>
+                <div class="form-group">
+                    <label>Visibility Level</label>
+                    <select name="visibility_level">
+                        <option value="Clear">Clear / Full Sight</option>
+                        <option value="Moderate">Moderate / Timber Blend</option>
+                        <option value="Low">Low / Dense Cover or Fog</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>General Stand Observations</label>
+                    <textarea name="notes" rows="3" placeholder="Wind direction, tracking details, scrape activity..."></textarea>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">Save Log Entry</button>
+        </form>
+    </div>
+
+    <script>
+        var defaultLat = 33.905783;
+        var defaultLng = -87.729952;
+        
+        var map = L.map('map').setView([defaultLat, defaultLng], 12);
+        
+        // Using protocol-agnostic tiles loading to match phone security
+        L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+            attribution: 'Map data: &copy; OpenTopoMap'
+        }).add_to(map);
+
+        var marker = L.marker([defaultLat, defaultLng], {draggable: true}).add_to(map);
+
+        // Forces Leaflet to compute structural boundaries accurately 
+        setTimeout(function() {
+            map.invalidateSize();
+        }, 200);
+
+        marker.on('dragend', function(e) {
+            var position = marker.getLatLng();
+            document.getElementById('id_lat').value = position.lat.toFixed(6);
+            document.getElementById('id_lng').value = position.lng.toFixed(6);
+        });
+
+        map.on('click', function(e) {
+            marker.setLatLng(e.latlng);
+            document.getElementById('id_lat').value = e.latlng.lat.toFixed(6);
+            document.getElementById('id_lng').value = e.latlng.lng.toFixed(6);
+        });
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var lat = position.coords.latitude;
+                    var lng = position.coords.longitude;
+                    
+                    document.getElementById('id_lat').value = lat.toFixed(6);
+                    document.getElementById('id_lng').value = lng.toFixed(6);
+                    
+                    map.setView([lat, lng], 15);
+                    marker.setLatLng([lat, lng]);
+                    map.invalidateSize();
+                }, function(error) {
+                    alert("GPS Profile Note: Browser blocked auto-location over unencrypted connection. Please click stand location manually on the map layer.");
+                }, { enableHighAccuracy: true });
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        function changeCount(fieldId, amount) {
+            var input = document.getElementById(fieldId);
+            var display = document.getElementById(fieldId + '_val');
+            var newVal = parseInt(input.value) + amount;
+            if (newVal >= 0) {
+                input.value = newVal;
+                display.innerText = newVal;
+            }
+        }
+    </script>
+</body>
+</html>
