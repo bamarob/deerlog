@@ -11,4 +11,7 @@ urlpatterns = [
     
     # Mobile-friendly form to log a new sit from the field
     path('create/', views.create_hunt, name='create_hunt'),
+
+    # Dynamic route passing the primary key of the hunt card being clicked
+    path('harvest/<int:hunt_id>/', views.create_harvest, name='create_harvest'), 
 ]

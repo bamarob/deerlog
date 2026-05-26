@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeerLog - Report Harvest</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --danger: #c0392b;
+            --dark: #34495e;
+            --light: #f8f9fa;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #eef2f5;
+            color: var(--dark);
+        }
+
+        .navbar {
+            background-color: var(--danger);
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+        }
+
+        h2 {
+            font-size: 1.1rem;
+            margin-top: 0;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            color: var(--danger);
+            border-bottom: 2px solid #eef2f5;
+            padding-bottom: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        input[type="number"], select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        #buck_details {
+            display: none;
+            background: #fff3f3;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #f5c6cb;
+            margin-top: 15px;
+        }
+
+        .btn-submit {
+            background-color: var(--danger);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(192, 57, 43, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <span>Record Harvest</span>
+        <a href="{% url 'dashboard' %}">✕ Cancel</a>
+    </div>
+
+    <div class="container">
+        <div class="card" style="background: #f8d7da; color: #721c24; margin-bottom: 15px; font-size: 0.9rem; padding: 12px; border-radius: 6px;">
+            Attaching harvest to sit log from <strong>{{ hunt.start_time|date:"M d, Y" }}</strong> at <strong>{{ hunt.location_zone|default:"Unmarked Stand" }}</strong>.
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="card">
+                <h2>Harvest Details</h2>
+                
+                <div class="form-group">
+                    <label>Sex</label>
+                    <select name="sex" id="id_sex" onchange="toggleBuckFields()">
+                        <option value="Doe">Doe</option>
+                        <option value="Buck">Buck</option>
+                        <option value="Button Buck">Button Buck</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Weight (lbs)</label>
+                    <input type="number" name="weight_lbs" step="0.1" placeholder="e.g. 145" required>
+                </div>
+		<!-- Toggleable fields if it's an antlered buck -->
+                <div id="buck_details">
+                    <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Left Points</label>
+                            <input type="number" name="points_left" value="0" min="0">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Right Points</label>
+                            <input type="number" name="points_right" value="0" min="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Inside Spread (in)</label>
+                        <input type="number" name="inside_spread" step="0.1" value="0.0" min="0">
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">Confirm Harvest Down</button>
+        </form>
+    </div>
+
+    <script>
+        function toggleBuckFields() {
+            var sexSelect = document.getElementById('id_sex').value;
+            var buckBox = document.getElementById('buck_details');
+            if (sexSelect === 'Buck') {
+                buckBox.style.display = 'block';
+            } else {
+                buckBox.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

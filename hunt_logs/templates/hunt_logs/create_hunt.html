@@ -258,8 +258,8 @@
 	// New open-protocol tile layer compatible with local Wi-Fi IP browsing
 	L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         	attribution: '&copy; OpenStreetMap contributors'
-	}).addTo(map); // <-- Make sure it is lowercase 'a', lowercase 'dd', capital 'T', lowercase 'o'
-        var marker = L.marker([defaultLat, defaultLng], {draggable: true}).add_to(map);
+	}).addTo(map);
+        var marker = L.marker([defaultLat, defaultLng], {draggable: true}).addTo(map);
 
         // Forces Leaflet to compute structural boundaries accurately 
         setTimeout(function() {

@@ -1,7 +1,8 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from .models import HuntLog
+from .models import Harvest
 import folium
 
 @login_required
@@ -77,11 +78,11 @@ def create_hunt(request):
             user=request.user,
             start_time=timezone.now(),
             location_zone=location_zone,
-            latitude=latitude,
-            longitude=longitude,
-            bucks_seen=int(bucks_seen),
-            does_seen=int(does_seen),
-            total_deer_seen=int(total_deer_seen) + int(bucks_seen) + int(does_seen),
+            latitude=float(latitude) if latitude else 0.0,
+            longitude=float(longitude) if longitide else 0.0,
+            bucks_seen=int(bucks),
+            does_seen=int(does),
+            fawns_seen=int(fawns),
             visibility_level=visibility_level,
             notes=notes
         )
@@ -89,3 +90,29 @@ def create_hunt(request):
         return redirect('dashboard')
         
     return render(request, 'hunt_logs/create_hunt.html')
+
+@login_required
+def create_harvest(request, hunt_id):
+    """Processes and links a harvest entry to a specific hunt sit."""
+    hunt = get_object_or_404(HuntLog, id=hunt_id, user=request.user)
+    
+    if request.method == 'POST':
+        sex = request.POST.get('sex')
+        weight_lbs = request.POST.get('weight_lbs')
+        inside_spread = request.POST.get('inside_spread', 0.0)
+        
+        p_left = int(request.POST.get('points_left', 0))
+        p_right = int(request.POST.get('points_right', 0))
+        
+        new_harvest = Harvest(
+            hunt=hunt,
+            sex=sex,
+            weight_lbs=float(weight_lbs),
+            points_left=p_left if sex == 'Buck' else 0,
+            points_right=p_right if sex == 'Buck' else 0,
+            inside_spread=float(inside_spread) if sex == 'Buck' else 0.0
+        )
+        new_harvest.save()
+        return redirect('dashboard')
+        
+    return render(request, 'hunt_logs/create_harvest.html', {'hunt': hunt})

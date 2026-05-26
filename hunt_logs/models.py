@@ -64,6 +64,7 @@ class Harvest(models.Model):
     # Antler data (Only populated if sex == 'Buck')
     points_left = models.IntegerField(default=0, blank=True)
     points_right = models.IntegerField(default=0, blank=True)
+    inside_spread = models.DecimalField(max_digits=5, decimal_places=2, default=0.0)
     
     notes = models.TextField(blank=True, help_text="Shot placement, recovery tracking details, etc.")
 
