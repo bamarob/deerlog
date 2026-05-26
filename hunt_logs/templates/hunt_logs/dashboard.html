@@ -153,6 +153,21 @@
             background: white;
             border-radius: 8px;
         }
+        .btn-harvest {
+            display: inline-block;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: var(--danger);
+            text-decoration: none;
+            border: 1px solid var(--danger);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .btn-harvest:active {
+            background-color: rgba(192, 57, 43, 0.05);
+        }
     </style>
 </head>
 <body>
@@ -175,5 +190,53 @@
             </div>
             <div class="stat-card">
                 <div class="stat-val">
-                    {% regroup hunts by harvest as harvest_list %}
-                    {{
+                    {% if hunts.exists %}
+                        {{ hunts.count }}
+                    {% else %}
+                        0
+                    {% endif %}
+                </div>
+                <div class="stat-lbl">Deer Seen</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val">🎯</div>
+                <div class="stat-lbl">Harvests</div>
+            </div>
+        </div>
+
+        <h2>Recent Outings</h2>
+        <div class="history-list">
+            {% for hunt in hunts %}
+                <div class="hunt-card {% if hunt.harvest %}harvest{% endif %}">
+                    <div class="hunt-meta">
+                        {{ hunt.start_time|date:"M d, Y" }} @ {{ hunt.start_time|date:"g:i A" }}
+                    </div>
+                    <div class="hunt-title">
+                        📍 Stand Zone: {{ hunt.location_zone|default:"General Coordinates" }}
+                    </div>
+                    <div class="hunt-counts">
+                        👀 Spotted: <strong>{{ hunt.total_deer_seen }}</strong> deer 
+                        <span style="color: #7f8c8d;">(Bucks: {{ hunt.bucks_seen }} | Does: {{ hunt.does_seen }})</span>
+                    </div>
+
+                    {% if hunt.harvest %}
+                        <div class="harvest-badge">
+                            🏁 {{ hunt.harvest.sex }} Down!
+                        </div>
+                    {% else %}
+                        <a href="{% url 'create_harvest' hunt.id %}" class="btn-harvest">
+                            🎯 Report Harvest
+                        </a>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <div class="empty-state">
+                    <p>No hunting logs recorded yet.</p>
+                    <p style="font-size: 0.85rem;">Tap "+ Log Current Sit" above to track your first outing.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</body>
+</html>
