@@ -89,7 +89,7 @@ def create_hunt(request):
             bucks_seen=int(bucks_seen),
             does_seen=int(does_seen),
             fawns_seen=int(fawns_seen),
-            unknown_seen=int(unknown_seen)
+            unknown_seen=int(unknown_seen),
             visibility_level=visibility_level,
             notes=notes
         )
