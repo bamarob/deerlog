@@ -212,7 +212,17 @@
                     </div>
                 </div>
 
-                <div class="counter-row">
+				<div class="counter-row">
+                    <label style="margin: 0;">Fawns Seen</label>
+                    <div>
+                        <button type="button" class="counter-btn" onclick="changeCount('fawns', -1)">-</button>
+                        <input type="number" name="fawns_seen" id="does" value="0" style="display:none;">
+                        <span class="counter-value" id="fawns_val">0</span>
+                        <button type="button" class="counter-btn" onclick="changeCount('fawns', 1)">+</button>
+                    </div>
+                </div>
+
+				<div class="counter-row">
                     <label style="margin: 0;">Unidentified/Other</label>
                     <div>
                         <button type="button" class="counter-btn" onclick="changeCount('unknown', -1)">-</button>
