@@ -69,10 +69,10 @@ def create_hunt(request):
         location_zone = request.POST.get('location_zone')
         latitude = request.POST.get('latitude')
         longitude = request.POST.get('longitude')
-        bucks_seen = request.POST.get('bucks_seen', 0)
-        does_seen = request.POST.get('does_seen', 0)
-        fawns_seen = request.POST.get('fawns_seen', 0)
-        unknwon_seen = request.POST.get('unknown_seen', 0)
+        bucks = request.POST.get('bucks', 0)
+        does = request.POST.get('does', 0)
+        fawns = request.POST.get('fawns', 0)
+        unknwon = request.POST.get('unknown', 0)
         start_str = request.POST.get('start_time')
         end_str = request.POST.get('end_time')
         start_dt = parse_datetime(start_str) if start_str else None
@@ -87,10 +87,10 @@ def create_hunt(request):
             location_zone=location_zone,
             latitude=float(latitude) if latitude else 0.0,
             longitude=float(longitude) if longitude else 0.0,
-            bucks_seen=int(bucks_seen),
-            does_seen=int(does_seen),
-            fawns_seen=int(fawns_seen),
-            unknown_seen=int(unknown_seen),
+            bucks=int(bucks),
+            does=int(does),
+            fawns=int(fawns),
+            unknown=int(unknown),
             visibility_level=visibility_level,
             notes=notes
         )
