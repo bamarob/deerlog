@@ -71,7 +71,7 @@ def create_hunt(request):
         bucks_seen = request.POST.get('bucks_seen', 0)
         does_seen = request.POST.get('does_seen', 0)
         fawns_seen = request.POST.get('fawns_seen', 0)
-        unknwon_seen = request.POST.get('unknown_seen, 0)
+        unknwon_seen = request.POST.get('unknown_seen', 0)
         start_str = request.POST.get('start_time')
         end_str = request.POST.get('end_time')
         start_dt = parse_datetime(start_str) if start_str else None
