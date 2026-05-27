@@ -1,7 +1,11 @@
 from django.urls import path
 from . import views
+from django.views.generic import RedirectView
 
 urlpatterns = [
+    # Map the blank root URL directly to the dashboard
+    path('', RedirectView.as_view(url='/hunts/dashboard/', permanent=True)),
+    
     # Your original admin mapping view
     path('map/', views.map_dashboard, name='map_dashboard'),
     
