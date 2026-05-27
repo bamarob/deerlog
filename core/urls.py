@@ -16,8 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import RedirectView
 
 urlpatterns = [
     path('admin/', admin.site.bind if hasattr(admin.site, 'bind') else admin.site.urls),
     path('hunts/', include('hunt_logs.urls')), #Mounts our custom logging pages under /hunts/
+    path('', RedirectView.as_view(url='/hunts/dashboard/', permanent=True))
 ]
