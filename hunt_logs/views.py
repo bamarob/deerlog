@@ -70,19 +70,26 @@ def create_hunt(request):
         longitude = request.POST.get('longitude')
         bucks_seen = request.POST.get('bucks_seen', 0)
         does_seen = request.POST.get('does_seen', 0)
-        total_deer_seen = request.POST.get('total_deer_seen', 0)
+        fawns_seen = request.POST.get('fawns_seen, 0)
+        unknwon_seen = request.POST.get('unknown_seen, 0)
+        start_str = request.POST.get('start_time')
+        end_str = request.POST.get('end_time')
+        start_dt = parse_datetime(start_str) if start_str else None
+        end_dt = parse_datetime(end_str) if end_str else None
         visibility_level = request.POST.get('visibility_level')
         notes = request.POST.get('notes')
 
         new_log = HuntLog(
             user=request.user,
-            start_time=timezone.now(),
+            start_time=start_dt,
+            end_time=end_dt,
             location_zone=location_zone,
             latitude=float(latitude) if latitude else 0.0,
             longitude=float(longitude) if longitude else 0.0,
-            bucks_seen=int(bucks),
-            does_seen=int(does),
-            fawns_seen=int(fawns),
+            bucks_seen=int(bucks_seen),
+            does_seen=int(does_seen),
+            fawns_seen=int(fawns_seen),
+            unknown_seen=int(unknown_seen)
             visibility_level=visibility_level,
             notes=notes
         )
