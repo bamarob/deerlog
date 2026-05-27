@@ -79,7 +79,7 @@ def create_hunt(request):
             start_time=timezone.now(),
             location_zone=location_zone,
             latitude=float(latitude) if latitude else 0.0,
-            longitude=float(longitude) if longitide else 0.0,
+            longitude=float(longitude) if longitude else 0.0,
             bucks_seen=int(bucks),
             does_seen=int(does),
             fawns_seen=int(fawns),
