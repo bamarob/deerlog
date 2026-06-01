@@ -287,12 +287,12 @@ input[type="text"], input[type="number"], select, textarea {
         document.addEventListener("DOMContentLoaded", function() {
             var startInput = document.getElementById('start_time');
             var endInput = document.getElementById('end_time');
-            
+
             if (startInput && !startInput.value) {
                 var now = new Date();
                 now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
                 startInput.value = now.toISOString().slice(0, 16);
-                
+
                 var later = new Date(now.getTime() + (3 * 60 * 60 * 1000));
                 endInput.value = later.toISOString().slice(0, 16);
             }

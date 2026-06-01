@@ -81,6 +81,7 @@ def create_hunt(request):
         does = request.POST.get('does', 0)
         fawns = request.POST.get('fawns', 0)
         unknown = request.POST.get('unknown', 0)
+
         start_str = request.POST.get('start_time')
         end_str = request.POST.get('end_time')
         start_dt = parse_datetime(start_str) if start_str else None
@@ -99,6 +100,7 @@ def create_hunt(request):
             does_seen=int(does),
             fawns_seen=int(fawns),
             unknown_seen=int(unknown),
+
             visibility_level=visibility_level,
             notes=notes
         )
