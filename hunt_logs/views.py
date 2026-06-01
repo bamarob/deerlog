@@ -1,38 +1,47 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from .models import HuntLog
 from .models import Harvest
 import folium
 
 @login_required
 def map_dashboard(request):
-    """1. The administrative topographic map view."""
+
     hunts = HuntLog.objects.filter(user=request.user)
-    
+
     # Default fallback map center if no hunt logs exist yet
     start_lat, start_lng = 33.905783, -87.729952
     zoom_level = 14
-    
+
     if hunts.exists():
         latest_hunt = hunts.latest('start_time')
         start_lat = float(latest_hunt.latitude)
         start_lng = float(latest_hunt.longitude)
 
     m = folium.Map(
-        location=[start_lat, start_lng], 
+        location=[start_lat, start_lng],
         zoom_start=zoom_level,
         tiles='https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
         attr='Map data: &copy; OpenTopoMap contributors'
     )
 
     for hunt in hunts:
+        zone = hunt.location_zone or "Unmarked Stand"
+        date_str = hunt.start_time.strftime('%b %d, %Y')
+        b = hunt.bucks_seen
+        d = hunt.does_seen
+        f = hunt.fawns_seen
+        u = hunt.unknown_seen
+        total = b + d + f + u
+
         popup_text = f"""
-        <strong>Zone:</strong> {hunt.location_zone or 'Unmarked Stand'}<br>
-        <strong>Date:</strong> {hunt.start_time.strftime('%b %d, %Y')}<br>
-        <strong>Deer Seen:</strong> {hunt.total_deer_seen} (B: {hunt.bucks_seen}, D: {hunt.does_seen})<br>
+        <strong>Zone:</strong> {zone}<br>
+        <strong>Date:</strong> {date_str}<br>
+        <strong>Deer Seen:</strong> {total} (B: {b}, D: {d}, F: {f}, U: {u})<br>
         """
-        
+
         has_harvest = hasattr(hunt, 'harvest')
         if has_harvest:
             harvest = hunt.harvest
@@ -68,42 +77,49 @@ def create_hunt(request):
         location_zone = request.POST.get('location_zone')
         latitude = request.POST.get('latitude')
         longitude = request.POST.get('longitude')
-        bucks_seen = request.POST.get('bucks_seen', 0)
-        does_seen = request.POST.get('does_seen', 0)
-        total_deer_seen = request.POST.get('total_deer_seen', 0)
+        bucks = request.POST.get('bucks', 0)
+        does = request.POST.get('does', 0)
+        fawns = request.POST.get('fawns', 0)
+        unknown = request.POST.get('unknown', 0)
+        start_str = request.POST.get('start_time')
+        end_str = request.POST.get('end_time')
+        start_dt = parse_datetime(start_str) if start_str else None
+        end_dt = parse_datetime(end_str) if end_str else None
         visibility_level = request.POST.get('visibility_level')
         notes = request.POST.get('notes')
 
         new_log = HuntLog(
             user=request.user,
-            start_time=timezone.now(),
+            start_time=start_dt,
+            end_time=end_dt,
             location_zone=location_zone,
             latitude=float(latitude) if latitude else 0.0,
-            longitude=float(longitude) if longitide else 0.0,
+            longitude=float(longitude) if longitude else 0.0,
             bucks_seen=int(bucks),
             does_seen=int(does),
             fawns_seen=int(fawns),
+            unknown_seen=int(unknown),
             visibility_level=visibility_level,
             notes=notes
         )
         new_log.save()
         return redirect('dashboard')
-        
+
     return render(request, 'hunt_logs/create_hunt.html')
 
 @login_required
 def create_harvest(request, hunt_id):
     """Processes and links a harvest entry to a specific hunt sit."""
     hunt = get_object_or_404(HuntLog, id=hunt_id, user=request.user)
-    
+
     if request.method == 'POST':
         sex = request.POST.get('sex')
         weight_lbs = request.POST.get('weight_lbs')
         inside_spread = request.POST.get('inside_spread', 0.0)
-        
+
         p_left = int(request.POST.get('points_left', 0))
         p_right = int(request.POST.get('points_right', 0))
-        
+
         new_harvest = Harvest(
             hunt=hunt,
             sex=sex,
@@ -114,5 +130,5 @@ def create_harvest(request, hunt_id):
         )
         new_harvest.save()
         return redirect('dashboard')
-        
+
     return render(request, 'hunt_logs/create_harvest.html', {'hunt': hunt})

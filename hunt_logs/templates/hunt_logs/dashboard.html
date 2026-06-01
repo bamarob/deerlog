@@ -1,242 +1,111 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DeerLog - Dashboard</title>
-    <style>
-        :root {
-            --primary: #2c3e50;
-            --success: #27ae60;
-            --danger: #c0392b;
-            --dark: #34495e;
-            --light: #f8f9fa;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #eef2f5;
-            color: var(--dark);
-        }
+{% extends 'hunt_logs/base.html' %}
 
-        .navbar {
-            background-color: var(--primary);
-            color: white;
-            padding: 15px;
-            text-align: center;
-            font-size: 1.2rem;
-            font-weight: bold;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
+{% block title %}DeerLog - Dashboard{% endblock %}
 
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 15px;
-        }
+{% block extra_css %}
+/* Specific page elements preserved from your original styling layout */
+.btn-log {
+    display: block;
+    background-color: var(--success);
+    color: white;
+    text-decoration: none;
+    text-align: center;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(39, 174, 96, 0.2);
+    transition: transform 0.1s;
+}
+.btn-log:active { transform: scale(0.98); }
+.nav-links { display: flex; gap: 10px; margin-bottom: 20px; }
+.btn-secondary {
+    flex: 1;
+    background-color: white;
+    color: var(--primary);
+    border: 1px solid var(--primary);
+    text-decoration: none;
+    text-align: center;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 25px; }
+.stat-card { background: white; padding: 12px; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+.stat-val { font-size: 1.4rem; font-weight: bold; color: var(--primary); }
+.stat-lbl { font-size: 0.75rem; color: #7f8c8d; text-transform: uppercase; margin-top: 4px; }
+h2 { font-size: 1.1rem; color: var(--primary); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+.hunt-card { background: white; border-radius: 8px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 4px solid #bdc3c7; position: relative; }
+.hunt-card.harvest { border-left-color: var(--danger); }
+.hunt-meta { font-size: 0.85rem; color: #7f8c8d; margin-bottom: 6px; }
+.hunt-title { font-weight: bold; font-size: 1.05rem; margin-bottom: 4px; }
+.hunt-counts { font-size: 0.9rem; color: #555; }
+.harvest-badge { position: absolute; top: 15px; right: 15px; background-color: rgba(192, 57, 43, 0.1); color: var(--danger); padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+.empty-state { text-align: center; padding: 40px 20px; color: #7f8c8d; background: white; border-radius: 8px; }
+.btn-harvest { display: inline-block; margin-top: 10px; font-size: 0.85rem; color: var(--danger); text-decoration: none; border: 1px solid var(--danger); padding: 4px 8px; border-radius: 4px; font-weight: bold; }
+{% endblock %}
 
-        /* Prominent Action Button */
-        .btn-log {
-            display: block;
-            background-color: var(--success);
-            color: white;
-            text-decoration: none;
-            text-align: center;
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(39, 174, 96, 0.2);
-            transition: transform 0.1s;
-        }
-        .btn-log:active {
-            transform: scale(0.98);
-        }
+{% block content %}
+    <a href="{% url 'create_hunt' %}" class="btn-log">+ Log Current Sit</a>
 
-        /* Quick Navigation Links */
-        .nav-links {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .btn-secondary {
-            flex: 1;
-            background-color: white;
-            color: var(--primary);
-            border: 1px solid var(--primary);
-            text-decoration: none;
-            text-align: center;
-            padding: 10px;
-            border-radius: 6px;
-            font-size: 0.9rem;
-        }
+    <div class="nav-links">
+        <a href="{% url 'map_dashboard' %}" class="btn-secondary">🗺️ View Map Layer</a>
+        <a href="/admin/" class="btn-secondary">⚙️ Admin Panel</a>
+    </div>
 
-        /* Summary Stats Panel */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 25px;
-        }
-        .stat-card {
-            background: white;
-            padding: 12px;
-            border-radius: 8px;
-            text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        .stat-val {
-            font-size: 1.4rem;
-            font-weight: bold;
-            color: var(--primary);
-        }
-        .stat-lbl {
-            font-size: 0.75rem;
-            color: #7f8c8d;
-            text-transform: uppercase;
-            margin-top: 4px;
-        }
-
-        h2 {
-            font-size: 1.1rem;
-            color: var(--primary);
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* History Feed Cards */
-        .hunt-card {
-            background: white;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 12px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            border-left: 4px solid #bdc3c7;
-            position: relative;
-        }
-        .hunt-card.harvest {
-            border-left-color: var(--danger);
-        }
-        .hunt-meta {
-            font-size: 0.85rem;
-            color: #7f8c8d;
-            margin-bottom: 6px;
-        }
-        .hunt-title {
-            font-weight: bold;
-            font-size: 1.05rem;
-            margin-bottom: 4px;
-        }
-        .hunt-counts {
-            font-size: 0.9rem;
-            color: #555;
-        }
-        .harvest-badge {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background-color: rgba(192, 57, 43, 0.1);
-            color: var(--danger);
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: bold;
-        }
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #7f8c8d;
-            background: white;
-            border-radius: 8px;
-        }
-        .btn-harvest {
-            display: inline-block;
-            margin-top: 10px;
-            font-size: 0.85rem;
-            color: var(--danger);
-            text-decoration: none;
-            border: 1px solid var(--danger);
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
-        .btn-harvest:active {
-            background-color: rgba(192, 57, 43, 0.05);
-        }
-    </style>
-</head>
-<body>
-
-    <div class="navbar">DeerLog Dashboard</div>
-
-    <div class="container">
-        <a href="{% url 'create_hunt' %}" class="btn-log">+ Log Current Sit</a>
-
-        <div class="nav-links">
-            <a href="{% url 'map_dashboard' %}" class="btn-secondary">🗺️ View Map Layer</a>
-            <a href="/admin/" class="btn-secondary">⚙️ Admin Panel</a>
+    <h2>Activity Overview</h2>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-val">{{ hunts.count }}</div>
+            <div class="stat-lbl">Total Sits</div>
         </div>
-
-        <h2>Activity Overview</h2>
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-val">{{ hunts.count }}</div>
-                <div class="stat-lbl">Total Sits</div>
+        <div class="stat-card">
+            <div class="stat-val">
+                {% if hunts.exists %}
+                    {{ hunts.count }}
+                {% else %}
+                    0
+                {% endif %}
             </div>
-            <div class="stat-card">
-                <div class="stat-val">
-                    {% if hunts.exists %}
-                        {{ hunts.count }}
-                    {% else %}
-                        0
-                    {% endif %}
-                </div>
-                <div class="stat-lbl">Deer Seen</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-val">🎯</div>
-                <div class="stat-lbl">Harvests</div>
-            </div>
+            <div class="stat-lbl">Deer Seen</div>
         </div>
-
-        <h2>Recent Outings</h2>
-        <div class="history-list">
-            {% for hunt in hunts %}
-                <div class="hunt-card {% if hunt.harvest %}harvest{% endif %}">
-                    <div class="hunt-meta">
-                        {{ hunt.start_time|date:"M d, Y" }} @ {{ hunt.start_time|date:"g:i A" }}
-                    </div>
-                    <div class="hunt-title">
-                        📍 Stand Zone: {{ hunt.location_zone|default:"General Coordinates" }}
-                    </div>
-                    <div class="hunt-counts">
-                        👀 Spotted: <strong>{{ hunt.total_deer_seen }}</strong> deer 
-                        <span style="color: #7f8c8d;">(Bucks: {{ hunt.bucks_seen }} | Does: {{ hunt.does_seen }})</span>
-                    </div>
-
-                    {% if hunt.harvest %}
-                        <div class="harvest-badge">
-                            🏁 {{ hunt.harvest.sex }} Down!
-                        </div>
-                    {% else %}
-                        <a href="{% url 'create_harvest' hunt.id %}" class="btn-harvest">
-                            🎯 Report Harvest
-                        </a>
-                    {% endif %}
-                </div>
-            {% empty %}
-                <div class="empty-state">
-                    <p>No hunting logs recorded yet.</p>
-                    <p style="font-size: 0.85rem;">Tap "+ Log Current Sit" above to track your first outing.</p>
-                </div>
-            {% endfor %}
+        <div class="stat-card">
+            <div class="stat-val">🎯</div>
+            <div class="stat-lbl">Harvests</div>
         </div>
     </div>
 
-</body>
-</html>
+    <h2>Recent Outings</h2>
+    <div class="history-list">
+        {% for hunt in hunts %}
+            <div class="hunt-card {% if hunt.harvest %}harvest{% endif %}">
+                <div class="hunt-meta">
+                    {{ hunt.start_time|date:"M d, Y" }} @ {{ hunt.start_time|date:"g:i A" }}
+                </div>
+                <div class="hunt-title">
+                    📍 Stand Zone: {{ hunt.location_zone|default:"General Coordinates" }}
+                </div>
+                <div class="hunt-counts">
+                    👀 Spotted: <strong>{{ hunt.total_deer_seen }}</strong> deer 
+                    <span style="color: #7f8c8d;">(Bucks: {{ hunt.bucks_seen }} | Does: {{ hunt.does_seen }})</span>
+                </div>
+
+                {% if hunt.harvest %}
+                    <div class="harvest-badge">
+                        🏁 {{ hunt.harvest.sex }} Down!
+                    </div>
+                {% else %}
+                    <a href="{% url 'create_harvest' hunt.id %}" class="btn-harvest">
+                        🎯 Report Harvest
+                    </a>
+                {% endif %}
+            </div>
+        {% empty %}
+            <div class="empty-state">
+                <p>No hunting logs recorded yet.</p>
+                <p style="font-size: 0.85rem;">Tap "+ Log Current Sit" above to track your first outing.</p>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

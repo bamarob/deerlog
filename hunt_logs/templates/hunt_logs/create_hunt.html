@@ -1,267 +1,242 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DeerLog - Log a Sit</title>
-    <link rel="stylesheet" href="//unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="//unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <style>
-        :root {
-            --primary: #2c3e50;
-            --success: #27ae60;
-            --accent: #e67e22;
-            --dark: #34495e;
-            --light: #f8f9fa;
-        }
+{% extends 'hunt_logs/base.html' %}
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #eef2f5;
-            color: var(--dark);
-        }
+{% block title %}DeerLog - Log a Sit{% endblock %}
 
-        .navbar {
-            background-color: var(--primary);
-            color: white;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: bold;
-        }
+{% block extra_css %}
+/* Leaflet and Map Dashboard overrides */
+@import url("//unpkg.com/leaflet@1.9.4/dist/leaflet.css");
 
-        .navbar a {
-            color: white;
-            text-decoration: none;
-            font-size: 0.9rem;
-        }
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    margin-bottom: 15px;
+    overflow: hidden;
+}
+h2 {
+    font-size: 1.1rem;
+    margin-top: 0;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    color: var(--primary);
+    border-bottom: 2px solid #eef2f5;
+    padding-bottom: 5px;
+}
+.form-group { margin-bottom: 15px; }
+label {
+    display: block;
+    font-weight: bold;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+}
+input[type="text"], input[type="number"], select, textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 1rem;
+}
+.counter-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+}
+.counter-btn {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 6px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+.counter-btn:active { background-color: var(--dark); }
+.counter-value { font-size: 1.3rem; font-weight: bold; width: 40px; text-align: center; }
+.btn-gps {
+    background-color: var(--accent);
+    color: white;
+    border: none;
+    width: 100%;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+#map {
+    height: 250px;
+    width: 100%;
+    background: #e5e3df;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    margin-top: 10px;
+    position: relative;
+    overflow: hidden;
+    display: block;
+    clear: both;
+}
 
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 15px;
-        }
+/* Force Leaflet's internal pane layers to respect the card boundaries */
+.leaflet-container, .leaflet-pane, .leaflet-map-pane {
+    position: relative;
+    max-width: 100% !important;
+}
 
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            margin-bottom: 15px;
-        }
+.btn-submit {
+    background-color: var(--success);
+    color: white;
+    border: none;
+    width: 100%;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(39, 174, 96, 0.2);
+}
+.cancel-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+.cancel-bar a {
+    color: var(--danger);
+    text-decoration: none;
+}
+{% endblock %}
 
-        h2 {
-            font-size: 1.1rem;
-            margin-top: 0;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            color: var(--primary);
-            border-bottom: 2px solid #eef2f5;
-            padding-bottom: 5px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            font-weight: bold;
-            font-size: 0.9rem;
-            margin-bottom: 5px;
-        }
-
-        input[type="text"], input[type="number"], select, textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 1rem;
-        }
-
-        /* Stealth Counter UI Buttons */
-        .counter-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-        }
-
-        .counter-btn {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            width: 44px;
-            height: 44px;
-            border-radius: 6px;
-            font-size: 1.5rem;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .counter-btn:active {
-            background-color: var(--dark);
-        }
-
-        .counter-value {
-            font-size: 1.3rem;
-            font-weight: bold;
-            width: 40px;
-            text-align: center;
-        }
-
-        /* GPS Button styling with fixed container map rules */
-        .btn-gps {
-            background-color: var(--accent);
-            color: white;
-            border: none;
-            width: 100%;
-            padding: 12px;
-            border-radius: 6px;
-            font-size: 1rem;
-            font-weight: bold;
-            margin-bottom: 10px;
-            cursor: pointer;
-        }
-
-        #map {
-            height: 250px;
-            width: 100%;
-            background: #e5e3df;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            margin-top: 10px;
-        }
-
-        .btn-submit {
-            background-color: var(--success);
-            color: white;
-            border: none;
-            width: 100%;
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(39, 174, 96, 0.2);
-        }
-    </style>
-</head>
-<body>
-
-    <div class="navbar">
+{% block content %}
+    <div class="cancel-bar">
         <span>Log New Sit</span>
-        <a href="{% url 'dashboard' %}">✕ Cancel</a>
+        <a href="{% url 'dashboard' %}">✕ Cancel Outing</a>
     </div>
 
-    <div class="container">
-        <form method="POST" id="huntForm">
-            {% csrf_token %}
+    <form method="POST" id="huntForm">
+        {% csrf_token %}
 
-            <div class="card">
-                <h2>1. Location Geometry</h2>
-                <button type="button" class="btn-gps" onclick="getLocation()">📡 Use Phone GPS Location</button>
-                
-                <div class="form-group">
-                    <label>Stand/Zone Name</label>
-                    <input type="text" name="location_zone" placeholder="e.g. Ridge Stand, Food Plot Creek">
-                </div>
+        <div class="card">
+            <h2>1. Location Geometry</h2>
+            <button type="button" class="btn-gps" onclick="getLocation()">📡 Use Phone GPS Location</button>
 
-                <div style="display: flex; gap: 10px;">
-                    <div class="form-group" style="flex: 1;">
-                        <label>Latitude</label>
-                        <input type="text" name="latitude" id="id_lat" required placeholder="0.000000">
-                    </div>
-                    <div class="form-group" style="flex: 1;">
-                        <label>Longitude</label>
-                        <input type="text" name="longitude" id="id_lng" required placeholder="0.000000">
-                    </div>
-                </div>
-
-                <label>Or Adjust Point on Map:</label>
-                <div id="map"></div>
+            <div class="form-group">
+                <label>Stand/Zone Name</label>
+                <input type="text" name="location_zone" placeholder="e.g. Ridge Stand, Food Plot Creek">
             </div>
 
-            <div class="card">
-                <h2>2. Deer Activity Sightings</h2>
-                
-                <div class="counter-row">
-                    <label style="margin: 0;">Bucks Seen</label>
-                    <div>
-                        <button type="button" class="counter-btn" onclick="changeCount('bucks', -1)">-</button>
-                        <input type="number" name="bucks_seen" id="bucks" value="0" style="display:none;">
-                        <span class="counter-value" id="bucks_val">0</span>
-                        <button type="button" class="counter-btn" onclick="changeCount('bucks', 1)">+</button>
-                    </div>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <div class="form-group" style="flex: 1;">
+                    <label for="start_time">Start Date & Time</label>
+                    <input type="datetime-local" name="start_time" id="start_time" required>
                 </div>
-
-                <div class="counter-row">
-                    <label style="margin: 0;">Does Seen</label>
-                    <div>
-                        <button type="button" class="counter-btn" onclick="changeCount('does', -1)">-</button>
-                        <input type="number" name="does_seen" id="does" value="0" style="display:none;">
-                        <span class="counter-value" id="does_val">0</span>
-                        <button type="button" class="counter-btn" onclick="changeCount('does', 1)">+</button>
-                    </div>
-                </div>
-
-                <div class="counter-row">
-                    <label style="margin: 0;">Unidentified/Other</label>
-                    <div>
-                        <button type="button" class="counter-btn" onclick="changeCount('unknown', -1)">-</button>
-                        <input type="number" name="total_deer_seen" id="unknown" value="0" style="display:none;">
-                        <span class="counter-value" id="unknown_val">0</span>
-                        <button type="button" class="counter-btn" onclick="changeCount('unknown', 1)">+</button>
-                    </div>
+                <div class="form-group" style="flex: 1;">
+                    <label for="end_time">End Date & Time</label>
+                    <input type="datetime-local" name="end_time" id="end_time" required>
                 </div>
             </div>
 
-            <div class="card">
-                <h2>3. Conditions & Notes</h2>
-                <div class="form-group">
-                    <label>Visibility Level</label>
-                    <select name="visibility_level">
-                        <option value="Clear">Clear / Full Sight</option>
-                        <option value="Moderate">Moderate / Timber Blend</option>
-                        <option value="Low">Low / Dense Cover or Fog</option>
-                    </select>
+            <div style="display: flex; gap: 10px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>Latitude</label>
+                    <input type="text" name="latitude" id="id_lat" required placeholder="0.000000">
                 </div>
-
-                <div class="form-group">
-                    <label>General Stand Observations</label>
-                    <textarea name="notes" rows="3" placeholder="Wind direction, tracking details, scrape activity..."></textarea>
+                <div class="form-group" style="flex: 1;">
+                    <label>Longitude</label>
+                    <input type="text" name="longitude" id="id_lng" required placeholder="0.000000">
                 </div>
             </div>
 
-            <button type="submit" class="btn-submit">Save Log Entry</button>
-        </form>
-    </div>
+            <label>Or Adjust Point on Map:</label>
+            <div id="map"></div>
+        </div>
 
+        <div class="card">
+            <h2>2. Deer Activity Sightings</h2>
+
+            <div class="counter-row">
+                <label style="margin: 0;">Bucks Seen</label>
+                <div>
+                    <button type="button" class="counter-btn" onclick="changeCount('bucks', -1)">-</button>
+                    <input type="number" name="bucks_seen" id="bucks" value="0" style="display:none;">
+                    <span class="counter-value" id="bucks_val">0</span>
+                    <button type="button" class="counter-btn" onclick="changeCount('bucks', 1)">+</button>
+                </div>
+            </div>
+
+            <div class="counter-row">
+                <label style="margin: 0;">Does Seen</label>
+                <div>
+                    <button type="button" class="counter-btn" onclick="changeCount('does', -1)">-</button>
+                    <input type="number" name="does_seen" id="does" value="0" style="display:none;">
+                    <span class="counter-value" id="does_val">0</span>
+                    <button type="button" class="counter-btn" onclick="changeCount('does', 1)">+</button>
+                </div>
+            </div>
+
+            <div class="counter-row">
+                <label style="margin: 0;">Fawns Seen</label>
+                <div>
+                    <button type="button" class="counter-btn" onclick="changeCount('fawns', -1)">-</button>
+                    <input type="number" name="fawns_seen" id="fawns" value="0" style="display:none;">
+                    <span class="counter-value" id="fawns_val">0</span>
+                    <button type="button" class="counter-btn" onclick="changeCount('fawns', 1)">+</button>
+                </div>
+            </div>
+
+            <div class="counter-row">
+                <label style="margin: 0;">Unidentified/Other</label>
+                <div>
+                    <button type="button" class="counter-btn" onclick="changeCount('unknown', -1)">-</button>
+                    <input type="number" name="unknown" id="unknown" value="0" style="display:none;">
+                    <span class="counter-value" id="unknown_val">0</span>
+                    <button type="button" class="counter-btn" onclick="changeCount('unknown', 1)">+</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>3. Conditions & Notes</h2>
+            <div class="form-group">
+                <label>Visibility Level</label>
+                <select name="visibility_level">
+                    <option value="0">Private (Only Me)</option>
+                    <option value="1">Masked/Aggregated (Hide Location)</option>
+                    <option value="2">Full Club (Share Everything)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>General Stand Observations</label>
+                <textarea name="notes" rows="3" placeholder="Wind direction, tracking details, scrape activity..."></textarea>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-submit">Save Log Entry</button>
+    </form>
+
+    <script src="//unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         var defaultLat = 33.905783;
         var defaultLng = -87.729952;
-        
-        var map = L.map('map').setView([defaultLat, defaultLng], 12);
-        
-        // Using protocol-agnostic tiles loading to match phone security
-        // L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-        //     attribution: 'Map data: &copy; OpenTopoMap'
-        // }).add_To(map);
 
-	// New open-protocol tile layer compatible with local Wi-Fi IP browsing
-	L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        	attribution: '&copy; OpenStreetMap contributors'
-	}).addTo(map);
+        var map = L.map('map').setView([defaultLat, defaultLng], 12);
+
+        L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
         var marker = L.marker([defaultLat, defaultLng], {draggable: true}).addTo(map);
 
-        // Forces Leaflet to compute structural boundaries accurately 
         setTimeout(function() {
             map.invalidateSize();
         }, 200);
@@ -283,10 +258,10 @@
                 navigator.geolocation.getCurrentPosition(function(position) {
                     var lat = position.coords.latitude;
                     var lng = position.coords.longitude;
-                    
+
                     document.getElementById('id_lat').value = lat.toFixed(6);
                     document.getElementById('id_lng').value = lng.toFixed(6);
-                    
+
                     map.setView([lat, lng], 15);
                     marker.setLatLng([lat, lng]);
                     map.invalidateSize();
@@ -307,6 +282,20 @@
                 display.innerText = newVal;
             }
         }
+
+        // Auto-populate current date & time elements
+        document.addEventListener("DOMContentLoaded", function() {
+            var startInput = document.getElementById('start_time');
+            var endInput = document.getElementById('end_time');
+            
+            if (startInput && !startInput.value) {
+                var now = new Date();
+                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                startInput.value = now.toISOString().slice(0, 16);
+                
+                var later = new Date(now.getTime() + (3 * 60 * 60 * 1000));
+                endInput.value = later.toISOString().slice(0, 16);
+            }
+        });
     </script>
-</body>
-</html>
+{% endblock %}
