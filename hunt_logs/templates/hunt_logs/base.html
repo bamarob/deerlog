@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}DeerLog{% endblock %}</title>
+    <title>{% block title %}DeerData{% endblock %}</title>
     <style>
         :root {
             --primary: #2c3e50;
@@ -49,7 +49,7 @@
 <body>
 
     <div class="navbar">
-        <a href="/hunts/dashboard/" class="navbar-brand">DeerLog Dashboard</a>
+        <a href="/hunts/dashboard/" class="navbar-brand">DeerData Dashboard</a>
         <div class="user-status">
             {% if user.is_authenticated %}
                 Logged in as: <strong>{{ user.username }}</strong>
