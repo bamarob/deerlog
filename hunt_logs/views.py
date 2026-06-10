@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from .models import HuntLog
 from .models import Harvest
+from django.db.models import Sum
 import folium
 
 @login_required
@@ -67,7 +68,27 @@ def map_dashboard(request):
 def dashboard(request):
     """2. The mobile-optimized landing page history index."""
     hunts = HuntLog.objects.filter(user=request.user).order_by('-start_time')
-    return render(request, 'hunt_logs/dashboard.html', {'hunts': hunts})
+
+    amounts = hunts.aggregate(
+            total_bucks=Sum('bucks_seen'),
+            total_does=Sum('does_seen'),
+            total_fawns=Sum('fawns_seen'),
+            total_unknown=Sum('unknown_seen')
+    )
+
+    b = amounts['total_bucks'] or 0
+    d = amounts['total_does'] or 0
+    f = amounts['total_fawns'] or 0
+    u = amounts['total_unknown'] or 0
+
+    grand_total_seen = b + d + f + u
+
+    context = {
+            'hunts': hunts,
+            'total_deer_seen_count': grand_total_seen,
+    }
+
+    return render(request, 'hunt_logs/dashboard.html', context)
 
 
 @login_required

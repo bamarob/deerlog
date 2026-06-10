@@ -61,13 +61,7 @@ h2 { font-size: 1.1rem; color: var(--primary); margin-bottom: 10px; text-transfo
             <div class="stat-lbl">Total Sits</div>
         </div>
         <div class="stat-card">
-            <div class="stat-val">
-                {% if hunts.exists %}
-                    {{ hunts.count }}
-                {% else %}
-                    0
-                {% endif %}
-            </div>
+            <div class="stat-val">{{ total_deer_seen_count }}</div>
             <div class="stat-lbl">Deer Seen</div>
         </div>
         <div class="stat-card">
