@@ -88,7 +88,7 @@ h2 { font-size: 1.1rem; color: var(--primary); margin-bottom: 10px; text-transfo
                 </div>
                 <div class="hunt-counts">
                     👀 Spotted: <strong>{{ hunt.total_deer_seen }}</strong> deer 
-                    <span style="color: #7f8c8d;">(Bucks: {{ hunt.bucks_seen }} | Does: {{ hunt.does_seen }})</span>
+                    <span style="color: #7f8c8d;">(Bucks: {{ hunt.bucks_seen }} | Does: {{ hunt.does_seen }} | Fawns: {{ hunt.fawns_seen }} | Unknown: {{ hunt.unknown_seen }})</span>
                 </div>
 
                 {% if hunt.harvest %}
