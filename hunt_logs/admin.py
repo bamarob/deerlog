@@ -9,7 +9,7 @@ class HarvestInline(admin.StackedInline):
 
 @admin.register(HuntLog)
 class HuntLogAdmin(admin.ModelAdmin):
-    list_display = ('user', 'start_time', 'location_zone', 'bucks_seen', 'does_seen', 'total_deer_seen', 'visibility_level')
+    list_display = ('user', 'start_time', 'location_zone', 'bucks_seen', 'does_seen', 'fawns_seen', 'unknown_seen', 'visibility_level')
     list_filter = ('visibility_level', 'club', 'start_time')
     search_fields = ('user__username', 'location_zone', 'notes')
     inlines = [HarvestInline]
