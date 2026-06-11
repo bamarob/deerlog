@@ -14,6 +14,11 @@ class HuntLogAdmin(admin.ModelAdmin):
     search_fields = ('user__username', 'location_zone', 'notes')
     inlines = [HarvestInline]
 
+    class Media:
+        js = (
+            'hunt_logs/js/admin_map.js', # Links our new click listener script
+        )
+
     # --- ADD THIS METHOD TO INJECT THE MAP ---
     def render_change_form(self, request, context, add=False, change=False, form_url='', obj=None):
         # Default starting point (e.g., Center of your general hunting territory)
@@ -54,5 +59,5 @@ class HuntLogAdmin(admin.ModelAdmin):
 
         # Render out the raw map code and push it into the page context
         context['admin_map_html'] = m._repr_html_()
-        
+
         return super().render_change_form(request, context, add, change, form_url, obj)
