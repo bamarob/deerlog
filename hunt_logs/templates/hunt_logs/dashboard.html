@@ -47,7 +47,7 @@ h2 { font-size: 1.1rem; color: var(--primary); margin-bottom: 10px; text-transfo
 {% endblock %}
 
 {% block content %}
-    <a href="{% url 'create_hunt' %}" class="btn-log">+ Log Current Sit</a>
+    <a href="{% url 'create_hunt' %}" class="btn-log">+ Log Current Hunt</a>
 
     <div class="nav-links">
         <a href="{% url 'map_dashboard' %}" class="btn-secondary">🗺️ View Map Layer</a>
@@ -58,7 +58,7 @@ h2 { font-size: 1.1rem; color: var(--primary); margin-bottom: 10px; text-transfo
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-val">{{ hunts.count }}</div>
-            <div class="stat-lbl">Total Sits</div>
+            <div class="stat-lbl">Total Hunts</div>
         </div>
         <div class="stat-card">
             <div class="stat-val">{{ total_deer_seen_count }}</div>
@@ -81,7 +81,7 @@ h2 { font-size: 1.1rem; color: var(--primary); margin-bottom: 10px; text-transfo
                     📍 Stand Zone: {{ hunt.location_zone|default:"General Coordinates" }}
                 </div>
                 <div class="hunt-counts">
-                    👀 Spotted: <strong>{{ hunt.total_deer_seen }}</strong> deer 
+                    👀 Spotted: <strong>{{ hunt.total_deer_seen }}</strong> deer
                     <span style="color: #7f8c8d;">(Bucks: {{ hunt.bucks_seen }} | Does: {{ hunt.does_seen }} | Fawns: {{ hunt.fawns_seen }} | Unknown: {{ hunt.unknown_seen }})</span>
                 </div>
 
