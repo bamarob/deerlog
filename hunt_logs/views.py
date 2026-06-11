@@ -73,7 +73,8 @@ def dashboard(request):
             total_bucks=Sum('bucks_seen'),
             total_does=Sum('does_seen'),
             total_fawns=Sum('fawns_seen'),
-            total_unknown=Sum('unknown_seen')
+            total_unknown=Sum('unknown_seen'),
+            total_harvested=Sum('harvest')
     )
 
     b = amounts['total_bucks'] or 0
@@ -83,9 +84,13 @@ def dashboard(request):
 
     grand_total_seen = b + d + f + u
 
+    # Catch a None value for harvest and turn it into 0
+    grand_total_harvest = amounts['total_harvested'] or 0
+
     context = {
             'hunts': hunts,
             'total_deer_seen_count': grand_total_seen,
+            'total_harvest_count': grand_total_harvest,
     }
 
     return render(request, 'hunt_logs/dashboard.html', context)
