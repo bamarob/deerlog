@@ -35,15 +35,13 @@ class AdminMapClickCallback(folium.elements.MacroElement):
 class HuntLogAdmin(admin.ModelAdmin):
     list_display = ('location_zone', 'user', 'start_time', 'harvest')
 
-    # Using *args and **kwargs makes this bulletproof across all Django versions
-    def render_change_form(self, request, context, *args, **kwargs):
-        # 1. Set up the default Folium map configuration
-        f_map = folium.Map(location=[33.2098, -87.5692], zoom_start=13)
+    # 1. Point Django to your custom admin form template wrapper
+    change_form_template = 'admin/hunt_logs/huntlog/change_form.html'
 
-        # 2. Attach our custom iframe escape click callback
+    def render_change_form(self, request, context, *args, **kwargs):
+        f_map = folium.Map(location=[33.2098, -87.5692], zoom_start=13)
         f_map.add_child(AdminMapClickCallback())
 
-        # 3. Check for existing coordinates if editing an entry
         form_instance = context.get('adminform').form
         if form_instance.instance and getattr(form_instance.instance, 'latitude', None):
             existing_lat = form_instance.instance.latitude
@@ -51,8 +49,5 @@ class HuntLogAdmin(admin.ModelAdmin):
             folium.Marker([existing_lat, existing_lng]).add_to(f_map)
             f_map.location = [existing_lat, existing_lng]
 
-        # 4. Pass the map HTML to the admin context template
         context['map_html'] = f_map._repr_html_()
-
-        # Pass everything smoothly back up to the native Django layout engine
         return super().render_change_form(request, context, *args, **kwargs)
