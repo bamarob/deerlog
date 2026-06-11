@@ -1,29 +1,27 @@
-// Listen globally for Django-Leaflet's native map initialization event
-window.addEventListener('map:init', function (e) {
-    // Grab the actual map instance straight out of the initialization detail package
-    var adminMap = e.detail.map;
+console.log("DeerLog script loaded successfully!");
+
+function attachMapClickListener(adminMap) {
+    console.log("Found the Leaflet map instance! Attaching listeners...");
     
-    // Locate Django Admin's exact auto-generated form input IDs
     var latInput = document.getElementById('id_latitude');
     var lngInput = document.getElementById('id_longitude');
     
-    // Add a click listener directly to the admin map instance
+    // Initialize our tracking marker as null
+    window.adminClickMarker = null;
+
     adminMap.on('click', function(event) {
+        console.log("Map clicked at:", event.latlng);
         if (latInput && lngInput) {
-            // Populate the textboxes with clean high-precision decimals
             latInput.value = event.latlng.lat.toFixed(6);
             lngInput.value = event.latlng.lng.toFixed(6);
         }
         
-        // Clear any old temporary markers so they don't pile up on your admin screen
         if (window.adminClickMarker) {
             adminMap.removeLayer(window.adminClickMarker);
         }
         
-        // Drop a fresh draggable marker on the exact spot you clicked
         window.adminClickMarker = L.marker(event.latlng, {draggable: true}).addTo(adminMap);
         
-        // If the user drags the marker around, keep the input fields perfectly synchronized
         window.adminClickMarker.on('dragend', function(dragEvent) {
             var position = window.adminClickMarker.getLatLng();
             if (latInput && lngInput) {
@@ -32,12 +30,41 @@ window.addEventListener('map:init', function (e) {
             }
         });
     });
-    
-    // If coordinates are already present in the form (like editing an old hunt log entry),
-    // automatically pre-drop the map marker on that spot when the page finishes loading
+
+    // Handle existing coordinates on edit forms
     if (latInput && lngInput && latInput.value && lngInput.value) {
         var existingLoc = [parseFloat(latInput.value), parseFloat(lngInput.value)];
         window.adminClickMarker = L.marker(existingLoc, {draggable: true}).addTo(adminMap);
         adminMap.setView(existingLoc, 14);
     }
+}
+
+// Strategy 1: Try Django-Leaflet's native event wrapper
+window.addEventListener('map:init', function (e) {
+    attachMapClickListener(e.detail.map);
+});
+
+// Strategy 2: Fallback poll loop in case the event already fired
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        if (!window.adminClickMarker) {
+            // Check if a global leaflet map cache array exists
+            if (typeof djangoFormGeomMySQL !== 'undefined' && djangoFormGeomMySQL.maps && djangoFormGeomMySQL.maps[0]) {
+                attachMapClickListener(djangoFormGeomMySQL.maps[0]);
+            } else if (typeof window.django_leaflet_maps !== 'undefined' && window.django_leaflet_maps[0]) {
+                attachMapClickListener(window.django_leaflet_maps[0]);
+            } else {
+                // Last ditch effort: scan the page for any raw leaflet map elements
+                var mapElements = document.querySelectorAll('.leaflet-container');
+                if (mapElements.length > 0) {
+                    console.log("Leaflet container found, attempting to force map extraction...");
+                    // Try to extract the map from internal Leaflet storage keys
+                    for (var i = 0; i < mapElements.length; i++) {
+                        var el = mapElements[i];
+                        if (el._leaflet_id && el.leaflet_map) attachMapClickListener(el.leaflet_map);
+                    }
+                }
+            }
+        }
+    }, 1000); // Give the DOM 1 full second to settle down
 });
