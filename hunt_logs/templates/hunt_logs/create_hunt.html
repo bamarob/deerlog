@@ -58,18 +58,6 @@ input[type="text"], input[type="number"], select, textarea {
 }
 .counter-btn:active { background-color: var(--dark); }
 .counter-value { font-size: 1.3rem; font-weight: bold; width: 40px; text-align: center; }
-.btn-gps {
-    background-color: var(--accent);
-    color: white;
-    border: none;
-    width: 100%;
-    padding: 12px;
-    border-radius: 6px;
-    font-size: 1rem;
-    font-weight: bold;
-    margin-bottom: 10px;
-    cursor: pointer;
-}
 
 #map {
     height: 250px;
@@ -102,6 +90,30 @@ input[type="text"], input[type="number"], select, textarea {
     cursor: pointer;
     box-shadow: 0 4px 6px rgba(39, 174, 96, 0.2);
 }
+
+.btn-gps {
+    background-color: var(--accent);
+    color: black !important; /* Force text visibility color */
+    width: 100%;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 1rem !important; /* Force font dimensions */
+    font-weight: bold;
+    margin-bottom: 10px;
+    cursor: pointer;
+    display: flex; /* Keeps emoji and text on the same line */
+    align-items: center;
+    justify-content: center;
+    gap: 8px; /* Adds clean spacing between the dish emoji and text */
+}
+
+/* Ensure any spans or inline text inside this specific button are visible */
+.btn-gps span {
+    display: inline !important;
+    visibility: visible !important;
+    color: black !important;
+}
+
 .cancel-bar {
     display: flex;
     justify-content: space-between;
@@ -128,7 +140,7 @@ input[type="text"], input[type="number"], select, textarea {
 
         <div class="card">
             <h2>1. Location Geometry</h2>
-            <button type="button" class="btn-gps" onclick="getLocation()">📡 Use Phone GPS Location</button>
+            <button type="button" class="btn-gps" onclick="getLocation()"><span>📡 Use Phone GPS Location</span></button>
 
             <div class="form-group">
                 <label>Stand/Zone Name</label>
@@ -244,7 +256,7 @@ input[type="text"], input[type="number"], select, textarea {
                 map.invalidateSize(true);
             }
         }
-        
+
         window.addEventListener('load', function() {
             setTimeout(forceRecalculateMap, 100);
             setTimeout(forceRecalculateMap, 400);
