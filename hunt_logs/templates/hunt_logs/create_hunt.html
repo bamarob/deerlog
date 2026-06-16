@@ -59,23 +59,12 @@ input[type="text"], input[type="number"], select, textarea {
 .counter-btn:active { background-color: var(--dark); }
 .counter-value { font-size: 1.3rem; font-weight: bold; width: 40px; text-align: center; }
 
-#map {
-    height: 250px;
-    width: 100%;
-    background: #e5e3df;
-    border-radius: 6px;
-    border: 1px solid #ccc;
+/* Folium Map Container Wrapper */
+.form-map-wrapper {
     margin-top: 10px;
-    position: relative !important;
-    overflow: hidden !important;
-    display: block !important;
-    clear: both;
-}
-
-/* Force Leaflet's internal structural layers to anchor strictly inside the card boundaries */
-.leaflet-container, .leaflet-pane, .leaflet-map-pane, .leaflet-tile-container {
-    position: relative !important;
-    max-width: 100% !important;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #ccc;
 }
 
 .btn-submit {
@@ -93,21 +82,20 @@ input[type="text"], input[type="number"], select, textarea {
 
 .btn-gps {
     background-color: var(--accent);
-    color: black !important; /* Force text visibility color */
+    color: black !important;
     width: 100%;
     padding: 12px;
     border-radius: 6px;
-    font-size: 1rem !important; /* Force font dimensions */
+    font-size: 1rem !important;
     font-weight: bold;
     margin-bottom: 10px;
     cursor: pointer;
-    display: flex; /* Keeps emoji and text on the same line */
+    display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px; /* Adds clean spacing between the dish emoji and text */
+    gap: 8px;
 }
 
-/* Ensure any spans or inline text inside this specific button are visible */
 .btn-gps span {
     display: inline !important;
     visibility: visible !important;
@@ -128,8 +116,6 @@ input[type="text"], input[type="number"], select, textarea {
 {% endblock %}
 
 {% block content %}
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
     <div class="cancel-bar">
         <span>Log New Sit</span>
         <a href="{% url 'dashboard' %}">✕ Cancel Outing</a>
@@ -158,19 +144,25 @@ input[type="text"], input[type="number"], select, textarea {
                 </div>
             </div>
 
-            <div style="display: flex; gap: 10px;">
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                 <div class="form-group" style="flex: 1;">
                     <label>Latitude</label>
-                    <input type="text" name="latitude" id="id_lat" required placeholder="0.000000">
+                    <input type="text" name="latitude" id="id_latitude" required placeholder="0.000000">
                 </div>
                 <div class="form-group" style="flex: 1;">
                     <label>Longitude</label>
-                    <input type="text" name="longitude" id="id_lng" required placeholder="0.000000">
+                    <input type="text" name="longitude" id="id_longitude" required placeholder="0.000000">
                 </div>
             </div>
 
             <label>Or Adjust Point on Map:</label>
-            <div id="map"></div>
+            <div class="form-map-wrapper">
+                {% if map_html %}
+                    {{ map_html|safe }}
+                {% else %}
+                    <p style="color: red; padding: 10px;">Error: Folium engine map layer template failed to load.</p>
+                {% endif %}
+            </div>
         </div>
 
         <div class="card">
@@ -180,7 +172,7 @@ input[type="text"], input[type="number"], select, textarea {
                 <label style="margin: 0;">Bucks Seen</label>
                 <div>
                     <button type="button" class="counter-btn" onclick="changeCount('bucks', -1)">-</button>
-                    <input type="number" name="bucks_seen" id="bucks" value="0" style="display:none;">
+                    <input type="number" name="bucks" id="bucks" value="0" style="display:none;">
                     <span class="counter-value" id="bucks_val">0</span>
                     <button type="button" class="counter-btn" onclick="changeCount('bucks', 1)">+</button>
                 </div>
@@ -190,7 +182,7 @@ input[type="text"], input[type="number"], select, textarea {
                 <label style="margin: 0;">Does Seen</label>
                 <div>
                     <button type="button" class="counter-btn" onclick="changeCount('does', -1)">-</button>
-                    <input type="number" name="does_seen" id="does" value="0" style="display:none;">
+                    <input type="number" name="does" id="does" value="0" style="display:none;">
                     <span class="counter-value" id="does_val">0</span>
                     <button type="button" class="counter-btn" onclick="changeCount('does', 1)">+</button>
                 </div>
@@ -200,7 +192,7 @@ input[type="text"], input[type="number"], select, textarea {
                 <label style="margin: 0;">Fawns Seen</label>
                 <div>
                     <button type="button" class="counter-btn" onclick="changeCount('fawns', -1)">-</button>
-                    <input type="number" name="fawns_seen" id="fawns" value="0" style="display:none;">
+                    <input type="number" name="fawns" id="fawns" value="0" style="display:none;">
                     <span class="counter-value" id="fawns_val">0</span>
                     <button type="button" class="counter-btn" onclick="changeCount('fawns', 1)">+</button>
                 </div>
@@ -237,59 +229,48 @@ input[type="text"], input[type="number"], select, textarea {
         <button type="submit" class="btn-submit">Save Log Entry</button>
     </form>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        var defaultLat = 33.905783;
-        var defaultLng = -87.729952;
-
-        var map = L.map('map').setView([defaultLat, defaultLng], 12);
-
-//        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-//            attribution: '&copy; OpenStreetMap contributors'
-//        }).addTo(map);
-
-        L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenTopoMap contributors'
-        }).addTo(map);
-
-        var marker = L.marker([defaultLat, defaultLng], {draggable: true}).addTo(map);
-
-        // Robust window container event processing engine loop
-        function forceRecalculateMap() {
-            if (map) {
-                map.invalidateSize(true);
-            }
-        }
-
-        window.addEventListener('load', function() {
-            setTimeout(forceRecalculateMap, 100);
-            setTimeout(forceRecalculateMap, 400);
-        });
-
-        marker.on('dragend', function(e) {
-            var position = marker.getLatLng();
-            document.getElementById('id_lat').value = position.lat.toFixed(6);
-            document.getElementById('id_lng').value = position.lng.toFixed(6);
-        });
-
-        map.on('click', function(e) {
-            marker.setLatLng(e.latlng);
-            document.getElementById('id_lat').value = e.latlng.lat.toFixed(6);
-            document.getElementById('id_lng').value = e.latlng.lng.toFixed(6);
-        });
-
+        // GPS Tracking Coordination targeting the child Folium iframe structure
         function getLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function(position) {
                     var lat = position.coords.latitude;
                     var lng = position.coords.longitude;
 
-                    document.getElementById('id_lat').value = lat.toFixed(6);
-                    document.getElementById('id_lng').value = lng.toFixed(6);
+                    document.getElementById('id_latitude').value = lat.toFixed(6);
+                    document.getElementById('id_longitude').value = lng.toFixed(6);
 
-                    map.setView([lat, lng], 15);
-                    marker.setLatLng([lat, lng]);
-                    forceRecalculateMap();
+                    // Find the Folium iframe child map instance container dynamically
+                    var mapIframe = document.querySelector('.form-map-wrapper iframe');
+                    if (mapIframe && mapIframe.contentWindow) {
+                        var childWin = mapIframe.contentWindow;
+                        
+                        // Look for Folium's global tracking namespace array map hooks
+                        var foliumMapKey = childWin.djangoFormGeomMySQL || childWin.window;
+                        var activeMap = null;
+
+                        if (foliumMapKey.maps && foliumMapKey.maps[0]) {
+                            activeMap = foliumMapKey.maps[0];
+                        } else if (childWin.window.django_leaflet_maps && childWin.window.django_leaflet_maps[0]) {
+                            activeMap = childWin.window.django_leaflet_maps[0];
+                        } else {
+                            // Extract map fallback if keys differ
+                            for (var key in childWin) {
+                                if (key.indexOf('map_') === 0 && childWin[key] instanceof childWin.L.Map) {
+                                    activeMap = childWin[key];
+                                    break;
+                                }
+                            }
+                        }
+
+                        // Center the interactive iframe layout canvas onto your phone's GPS pin point
+                        if (activeMap) {
+                            activeMap.setView([lat, lng], 15);
+                            if (childWin.L) {
+                                childWin.L.marker([lat, lng]).addTo(activeMap);
+                            }
+                        }
+                    }
                 }, function(error) {
                     alert("GPS Profile Note: Browser blocked auto-location over unencrypted connection. Please click stand location manually on the map layer.");
                 }, { enableHighAccuracy: true });

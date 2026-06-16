@@ -6,10 +6,47 @@ from .models import HuntLog
 from .models import Harvest
 from django.db.models import Sum
 import folium
+from jinja2 import Template
 
+# ==========================================
+# FOLIUM IFRAME ESCAPE MACRO
+# ==========================================
+class FrontendMapClickCallback(folium.elements.MacroElement):
+    """
+    Custom Folium macro that injects a JavaScript click event inside the map iframe.
+    It catches the click coordinates and pushes them out into the parent Django 
+    HTML form's 'id_latitude' and 'id_longitude' input textboxes.
+    """
+    _template = Template(u"""
+        {% macro script(this, kwargs) %}
+            var clickMarker = null;
+            {{this._parent.get_name()}}.on('click', function(e) {
+                var lat = e.latlng.lat.toFixed(6);
+                var lng = e.latlng.lng.toFixed(6);
+                
+                // Reach past the iframe window boundary directly into the frontend form fields
+                if (parent.document.getElementById('id_latitude')) {
+                    parent.document.getElementById('id_latitude').value = lat;
+                }
+                if (parent.document.getElementById('id_longitude')) {
+                    parent.document.getElementById('id_longitude').value = lng;
+                }
+                
+                // Drop a visual pin on the spot clicked, clearing any old click pins first
+                if (clickMarker) {
+                    {{this._parent.get_name()}}.removeLayer(clickMarker);
+                }
+                clickMarker = L.marker(e.latlng).addTo({{this._parent.get_name()}});
+            });
+        {% endmacro %}
+    """)
+
+
+# ==========================================
+# MAP DASHBOARD VIEW
+# ==========================================
 @login_required
 def map_dashboard(request):
-
     hunts = HuntLog.objects.filter(user=request.user)
 
     # Default fallback map center if no hunt logs exist yet
@@ -64,6 +101,9 @@ def map_dashboard(request):
     return render(request, 'hunt_logs/map_dashboard.html', {'map_html': map_html})
 
 
+# ==========================================
+# HISTORY DASHBOARD INDEX VIEW
+# ==========================================
 @login_required
 def dashboard(request):
     """2. The mobile-optimized landing page history index."""
@@ -96,9 +136,12 @@ def dashboard(request):
     return render(request, 'hunt_logs/dashboard.html', context)
 
 
+# ==========================================
+# FIELD ENTRY CREATE VIEW
+# ==========================================
 @login_required
 def create_hunt(request):
-    """3. Processes and saves the mobile field-logging form data."""
+    """3. Processes and saves the mobile field-logging form data with interactive Folium canvas."""
     if request.method == 'POST':
         location_zone = request.POST.get('location_zone')
         latitude = request.POST.get('latitude')
@@ -122,19 +165,45 @@ def create_hunt(request):
             location_zone=location_zone,
             latitude=float(latitude) if latitude else 0.0,
             longitude=float(longitude) if longitude else 0.0,
-            bucks_seen=int(bucks),
-            does_seen=int(does),
-            fawns_seen=int(fawns),
-            unknown_seen=int(unknown),
-
+            bucks_seen=int(bucks) if bucks else 0,
+            does_seen=int(does) if does else 0,
+            fawns_seen=int(fawns) if fawns else 0,
+            unknown_seen=int(unknown) if unknown else 0,
             visibility_level=visibility_level,
             notes=notes
         )
         new_log.save()
         return redirect('dashboard')
 
-    return render(request, 'hunt_logs/create_hunt.html')
+    # --- GET Request Configuration: Build the Folium Form Map Pipeline ---
+    # Match your preferred topo-map layer style, defaulting center near previous hunts
+    hunts = HuntLog.objects.filter(user=request.user)
+    start_lat, start_lng = 33.905783, -87.729952
+    
+    if hunts.exists():
+        latest_hunt = hunts.latest('start_time')
+        start_lat = float(latest_hunt.latitude)
+        start_lng = float(latest_hunt.longitude)
 
+    m = folium.Map(
+        location=[start_lat, start_lng],
+        zoom_start=14,
+        tiles='https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+        attr='Map data: &copy; OpenTopoMap contributors'
+    )
+    
+    # Inject our macro listener block into the map map canvas instance
+    m.add_child(FrontendMapClickCallback())
+    
+    context = {
+        'map_html': m._repr_html_()
+    }
+    return render(request, 'hunt_logs/create_hunt.html', context)
+
+
+# ==========================================
+# HARVEST SUBMISSION VIEW
+# ==========================================
 @login_required
 def create_harvest(request, hunt_id):
     """Processes and links a harvest entry to a specific hunt sit."""
